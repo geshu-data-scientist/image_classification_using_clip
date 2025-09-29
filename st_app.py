@@ -2,7 +2,6 @@ import streamlit as st
 import torch
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
-import os
 
 # Set page configuration
 st.set_page_config(
@@ -16,24 +15,22 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     """
-    Loads the CLIP model and processor from a local directory.
-    Shows an error message if the model is not found.
+    Loads the CLIP model and processor directly from Hugging Face.
+    This will download the model on the first run.
     """
-    local_path = "./clip-vit-base-patch32"
+    model_name = "openai/clip-vit-base-patch32"
+    st.info(f"Loading model '{model_name}' from Hugging Face Hub... This may take a moment on the first run.")
     
-    if not os.path.isdir(local_path):
-        st.error(f"Error: Model directory not found at '{local_path}'.")
-        st.error("Please download the 'clip-vit-base-patch32' model from Hugging Face and place it in the same directory as this script.")
-        st.stop()
-        
     try:
-        model = CLIPModel.from_pretrained(local_path)
-        processor = CLIPProcessor.from_pretrained(local_path)
+        model = CLIPModel.from_pretrained(model_name)
+        processor = CLIPProcessor.from_pretrained(model_name)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model.to(device)
+        st.success("Model loaded successfully!")
         return model, processor, device
     except Exception as e:
         st.error(f"An error occurred while loading the model: {e}")
+        st.error("Please check your internet connection and ensure you have the 'transformers' library installed.")
         st.stop()
 
 # Load the model, processor, and device
